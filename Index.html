@@ -1,3 +1,81 @@
 <!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Homepage</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    
+    <body>
+        <h1>Hello World</h1>
+    </body>
+    <!-- Get images from user -->
+    <div class="input-div">
+        <p>Drag and drop images here or <strong>browse</strong></p>
+        <input type="file" class="file" multiple="multiple" accept="image/png, image/jpg, image/jpeg">
+    </div>
+    <!-- image-div displays uploaded images -->
+    <div class="image-div"></div>
+    <div class="process">
+        <button type="submit">Process</button>
+    </div>
+</html>
 
-<h1>Hello World</h1>
+
+<!-- Input file code and CSS inspired from https://www.youtube.com/watch?v=EaBSeNSc-2c&ab_channel=WebDevTutorials -->
+<script>
+    let input = document.querySelector(".input-div input")
+    let process = document.querySelector(".process button")
+    let inputDiv = document.querySelector(".input-div")
+    let imageDiv = document.querySelector(".image-div")
+
+    let imagesArray = []
+
+    // Stores uploaded images into imagesArray
+    input.addEventListener("change", () => {
+        let files = input.files
+        for(let i = 0; i < files.length; i++) {
+            imagesArray.push(files[i])
+        }
+        console.log(imagesArray)
+        displayImages()
+    })
+
+    // Stores images uploaded via drag and drop, into imagesArray
+    inputDiv.addEventListener("drop", (e) => {
+        e.preventDefault()
+        let files = e.dataTransfer.files
+        for(let i = 0; i < files.length; i++) {
+            if(files[i].type.match("image"))
+                imagesArray.push(files[i])
+        }
+        console.log(imagesArray)
+        displayImages()
+    })
+
+    // Displays images by adding them to image-div
+    function displayImages(){
+        let images = ""
+        imagesArray.forEach((image, index) => {
+            images += `<div class="image">
+                        <img src="${URL.createObjectURL(image)}" alt="NULL">
+                        <span onclick="deleteImage(${index})">&times;</span>
+                       </div>`
+        })
+        imageDiv.innerHTML = images
+    }
+
+    // Delete a single image from imagesArray
+    function deleteImage(index) {
+        imagesArray.splice(index, 1)
+        displayImages()
+    }
+
+    // Sends images to server when process button is clicked
+    process.addEventListener("click", () => {
+        // Send images to sever here
+        imagesArray = []
+        displayImages()
+    })
+
+</script>
