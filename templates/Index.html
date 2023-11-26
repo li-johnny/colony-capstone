@@ -19,6 +19,7 @@
     <div class="process">
         <button type="submit">Process</button>
     </div>
+    <img src= "{{image}}" >
 </html>
 
 
@@ -73,7 +74,15 @@
 
     // Sends images to server when process button is clicked
     process.addEventListener("click", () => {
-        // Send images to sever here
+        let formData = new FormData();
+        formData.append('img', imagesArray[0]);
+        console.log(formData.get('img'))
+        fetch('/',{
+            method: 'POST',
+            body: formData,
+            files: imagesArray[0],
+            //headers:{'Content-Type': 'multipart/form-data'}
+        })
         imagesArray = []
         displayImages()
     })
