@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colony Counter Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>The Bacterial Colony Auto-Counting System</h1>
+    </header>
+    <main>
+        <p class="intro">This system will help you automatically count bacterial colonies with ease.</p>
+        <p class="instruction">Instructions:</p>
+        <ol>
+            <li>Click the "Start Couting!" button on the lower right.</li>
+            <li>Upload an image of your petri dish.</li>
+            <li>Receive a count of the colonies and a hilighted image.</li>
+            <li>Analyze the results.</li>
+        </ol>
+        
+        <div class="image-section">
+            <div class="text">
+                <p class="text-contents">Click the <br> <span class="highlight">&nbsp;&nbsp;Start Counting!&nbsp;&nbsp;</span> <br> button</p> <!-- &nbsp; creates a space-->
+            </div>
+            
+            <div class="arrow">
+                <p>&rArr;</p>
+            </div>
+            <div class="image-container">
+                <p>upload an image</p>
+                <img src="{{ url_for('static', filename='images/before_scanned.jpeg') }}" alt="Image before scanning">
+            </div>
+            <div class="arrow">
+                <p>&rArr;</p>
+            </div>
+            <div class="image-container">
+                <p>wait for processing</p>
+                <img src="{{ url_for('static', filename='images/scanned.jpeg') }}" alt="Scanned image">
+            </div>
+            <div class="arrow">
+                <p>&rArr;</p>
+            </div>
+            <div class="text">
+                <p> &nbsp;Get the counted number&nbsp;&nbsp;</p> <!-- &nbsp; creates a space-->
+            </div>
+        </div>
+        
+
+        <button class="start_counting">Start Counting!</button>
+    </main>
+    <footer>
+        <p>Developed by OSU Capstone Project</p>
+    </footer>
+</body>
+</html>
