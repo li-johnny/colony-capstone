@@ -1,0 +1,275 @@
+body {
+    font-family: Arial, sans-serif;
+    font-size: 30px;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+    position: relative; /* This makes sure that the absolute positioning is relative to the entire page */
+}
+
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+}
+
+main {
+    padding: 20px;
+}
+
+p.intro{
+    margin:0px;
+}
+
+p.instruction{
+    margin-bottom:10px;
+}
+
+ol{
+    margin:0px;
+}
+
+h2{
+    font-size: 10px;
+}
+
+.image-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.image-section .image-container {
+    width: 200px; /* Adjust to control the size of the images */
+}
+
+.image-section img {
+    width: 100%; /* Image takes the full width of its container */
+    height: auto; /* Height is auto to maintain aspect ratio */
+}
+
+.text{
+    color:#fff;
+    background-color: #525252;
+    border-radius: 50%;
+    width:20vw;
+    height:20vh;
+    display: flex;
+    align-items: center; /* Vertical alignment */
+    justify-content: center; /* Horizontal alignment */
+    text-align: center;
+}
+
+.highlight {
+    background-color: #007bff;
+    border-radius: 40%;
+}
+
+div.image-section p{
+    font-size: 20px;
+    margin: 0px;
+}
+
+.start_counting {
+    /* Size and shape */
+    width: 13vw; /* Circle width */
+    height: 13vw; /* Circle height, same as width for a perfect circle */
+    border-radius: 50%; /* This will make it a circle */
+    
+    /* Text style */
+    font-size: 30px; /* Large font size for the button text */
+    color: white; /* Text color */
+    text-align: center; /* Center the text horizontally */
+
+    /* Positioning */
+    position: absolute; /* Absolute positioning relative to the nearest positioned ancestor */
+    right: 20px; /* Distance from the right side of the screen */
+    bottom: 20px; /* Distance from the bottom of the screen */
+    z-index: 1000; /* Ensures the button is on top of other elements */
+
+    /* Styling */
+    border: none; /* No border */
+    cursor: pointer; /* Pointer cursor on hover */
+    background-color: #007bff; /* Background color */
+    
+    /* Flexbox for centering text */
+    display: flex; /* Enables the use of Flexbox for centering */
+    align-items: center; /* Center items vertically */
+    justify-content: center; /* Center items horizontally */
+
+    /* Reset padding and line-height */
+    padding: 0; /* Padding reset for the circle */
+    line-height: normal; /* Reset line-height; flexbox will take care of centering */
+
+    /* Centering the scaling origin */
+    transform-origin: center;
+    /* Initial scale */
+    transform: scale(1); /* Starts at normal size */
+
+    transition: width 1s, height 1s, background-color 1s;
+}
+
+.start_counting:hover {
+    width: 15vw; 
+    height: 15vw; 
+    background-color: orange; /* Background color changes to orange on hover */
+    /* Scale up the button */
+    transform: scale(1.15); /* Increase the size by 15% */
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+    body {
+        font-size: 24px; /* Slightly smaller font size for tablet */
+    }
+
+    header, footer {
+        padding: 15px; /* Adjust padding for smaller screens */
+    }
+
+    main {
+        padding: 15px;
+    }
+
+    .image-section .image-container {
+        width: 150px; /* Smaller image size for tablet */
+    }
+
+    .text{
+        width: 20vw;
+        height: 15vh;
+    }
+
+    div.image-section p{
+        font-size: 30px;
+    }
+
+    .highlight {
+        font-size:15px;
+    }
+
+    .start_counting {
+        width: 10vw;
+        height: 10vw;
+        font-size: 20px; /* Adjust font size for tablet */
+    }
+
+    .start_counting:hover {
+        width: 12vw; 
+        height: 12vw;
+    }
+
+    div.image-container p {
+        margin-top: 20px;
+        font-size: 15px;
+        text-align: center;
+    }
+
+    .start_counting {
+        font-size: 25px;
+        width: 15vw;
+        height: 15vw;
+    }
+
+}
+
+@media only screen and (max-width: 600px) {
+    body {
+        font-size: 14px; /* Smaller font size for small screens */
+        margin: 10px; /* Adjust margin for smaller screens */
+    }
+
+    header h1 {
+        font-size: 24px; /* Adjust header font size for small screens */
+    }
+
+    header, footer {
+        padding: 15px; /* Adjust padding for smaller screens */
+    }
+
+    main {
+        padding: 15px 0px;
+    }
+
+    .image-section .image-container {
+        width: 15vw; /* Smaller image size for tablet */
+    }
+
+    .text{
+        width: 25vw;
+        height: 10vh;
+    }
+
+    div.image-section p{
+        font-size: 12px;
+    }
+
+    .highlight {
+        font-size:10px;
+    }
+
+    
+    
+    /* Ensure that the button takes full width if needed */
+    .start_counting {
+
+        /* Remove absolute positioning */
+        position: static; /* Default positioning */
+
+        /* Size and shape */
+        width: 50vw;
+        height: 10vh; /* Height can be auto or a specific value */
+        margin: 20px auto; /* Top and bottom margin with auto for horizontal centering */
+        border-radius: 50%; /* Maintain the circular shape if desired */
+        
+        /* Text style */
+        font-size: 20px; /* Adjust font size for small screens */
+        
+        /* Styling */
+        border: none;
+        cursor: pointer;
+        background-color: #007bff;
+        
+        /* Flexbox for centering text */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        /* Reset padding and line-height */
+        padding: 10px 0; /* Provide padding inside the button */
+        line-height: normal;
+
+        /* Centering the scaling origin */
+        transform-origin: center;
+
+        /* Remove transform scale to keep consistent size */
+        transform: none;
+
+        /* It won't be a perfect circle anymore due to the responsive width */
+        border-radius: 20px; /* Less rounded edges if not a circle */
+    }
+
+    div.image-container p {
+        margin-top: 20px;
+        font-size: 8px;
+        text-align: center;
+    }
+    
+}
