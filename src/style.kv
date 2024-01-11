@@ -1,0 +1,41 @@
+<MyGridLayout>
+
+    GridLayout:
+        cols: 1
+        size: root.width, root.height
+
+        Label:
+            text: "Test"
+
+        Button:
+            text: "Upload"
+            font_size: 32
+            size_hint: (None, 0.1)
+            width: 200
+            on_release: root.file_explorer()
+
+        GridLayout:
+            cols: 2
+
+            ScrollView:
+                size_hint: (0.8, 1)
+                canvas.before:
+                    Color:
+                        rgba: 0.2, 0.2, 0.2, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                GridLayout:
+                    id: image_box
+                    rows: 1
+                    width: self.minimum_width
+                    size_hint: (None, 1)
+                    col_default_width: 150
+
+            Label:
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
