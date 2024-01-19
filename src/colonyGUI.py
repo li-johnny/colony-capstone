@@ -1,9 +1,10 @@
 import kivy
 from kivy.app import App
-from kivy.uix.widget import Widget
 from kivy.lang import Builder
 from kivy.core.window import Window
-from kivy.uix.image import AsyncImage
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.widget import Widget
+from kivy.properties import StringProperty
 from plyer import filechooser
 
 # Set app size
@@ -11,6 +12,16 @@ Window.size = (1000, 700)
 
 # Designate our design file
 Builder.load_file("style.kv")
+
+# Store list of image paths
+images = []
+
+class ImageContainerWidget(BoxLayout):
+    source = StringProperty()
+
+    def remove(self):
+        self.parent.remove_widget(self)
+        images.remove(self.source)
 
 class MyGridLayout(Widget):
 
@@ -36,7 +47,9 @@ class MyGridLayout(Widget):
     # Add provided image to our image_box section
     def load_image(self, file_path):
         if file_path.lower().endswith(('.png', '.jpg', '.jpeg')):
-            self.ids.image_box.add_widget(AsyncImage(source = file_path))
+            self.ids.image_box.add_widget(ImageContainerWidget(source = file_path))
+            images.append(file_path)
+            print(images)
         else:
             print("Could not open")
                 
