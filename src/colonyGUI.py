@@ -39,6 +39,9 @@ class MyGridLayout(Widget):
             self.ids.image_box.add_widget(AsyncImage(source = file_path))
         else:
             print("Could not open")
+    
+    def start_processing():
+        print("Processing started...")
                 
 
 class colonyGUI(App):
