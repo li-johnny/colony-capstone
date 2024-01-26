@@ -59,6 +59,32 @@ def main():
         images[i] = annotate_image(images[i], colonies[i])
         cv.imwrite('2023-11-21-Annotated/IMG_' + str(i + 4574) + '.jpg', images[i])
 
+# this function processes a list of images stored as numpy arrays
+def process_images(images, detection_data = DetectionData(cv.HOUGH_GRADIENT_ALT, 1, 10, 100, 0.9, 2, 50)):
+
+    dishes = np.empty(IMAGE_NUMBER, dtype='object')
+    colonies = np.empty(IMAGE_NUMBER, dtype='object')
+    
+    # detect dishes in images
+    for i in range(len(images)): 
+        dishes[i] = detect_dish(images[i])
+        
+    # black out image background
+    for i in range(len(images)):
+        images[i] = blackout_image(images[i], dishes[i][0][0])
+
+    # Count the colonies
+    for i in range(len(images)):
+        colonies[i] = get_colonies(images[i], detection_data)
+
+    images = [cv.cvtColor(img, cv.COLOR_GRAY2BGR) for img in images]
+
+    # Annotate images
+    for i in range(len(images)):
+        images[i] = annotate_image(images[i], colonies[i])
+
+    return colonies, images
+
 # Oppens the images from 2023-11-21
 def open_heic(num = 36):
     # This is required to open .HEIC images
