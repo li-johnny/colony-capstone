@@ -44,22 +44,28 @@ class MyGridLayout(Widget):
             for i in range(len(selection)):
                 self.load_image(selection[i])
 
-    # Add provided image to our image_box section
+    # Add provided image to our image_box section add put in the image previewer
     def load_image(self, file_path):
         if file_path.lower().endswith(('.png', '.jpg', '.jpeg')):
             self.ids.image_box.add_widget(ImageContainerWidget(source = file_path))
             images.append(file_path)
+            self.ids.previewer.source = file_path
+            self.ids.previewer.opacity = 1
             print(images)
         else:
             print("Could not open")
     
-    def start_processing():
-        print("Processing started...")
-                
+    # Update Image in the image previewer
+    def previewer_update(self, source):
+        self.ids.previewer.source = source
+    
+    def start_processing(self):
+        print("Processing started...")         
 
 class colonyGUI(App):
     def build(self):
-        return MyGridLayout()
+        self.myLayout = MyGridLayout()
+        return self.myLayout
     
 if __name__ == '__main__':
     colonyGUI().run()
