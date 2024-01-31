@@ -24,10 +24,10 @@
         cols: 2
         size: root.width, root.height
 
+        
         # Imported images container on the left side of the screen
         ScrollView:
-            size_hint: (None, 1)
-            width: 333
+            size_hint: (0.4, 1)
             canvas.before:
                 Color:
                     rgba: 0.2, 0.2, 0.2, 1
@@ -64,14 +64,15 @@
                 #     text: "Test"
 
             GridLayout:
-                cols: 2
+                cols: 3
                 size_hint: (1, 0.3)
-                # canvas.before:
-                #     Color:
-                #         rgba: 0.286, 0.361, 0.51, 1
-                #     Rectangle:
-                #         pos: self.pos
-                #         size: self.size
+                canvas.before:
+                    Color:
+                        rgba: 0.286, 0.361, 0.51, 1  # Set to the same color as cols: 2
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
                 AnchorLayout:
                     # padding: [padding_left, padding_top, padding_right, padding_bottom]
                     padding: 180, 0, 40, 0
@@ -80,10 +81,32 @@
                         font_size: 32
                         size_hint: (1, 0.5)
                         on_release: root.file_explorer()
+                        background_color: (0.5, 0.5, 0.5, 0.5)  # Makes the default button background transparent
+                        canvas.before:
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Button color (white in this case)
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [10]  # Adjust the radius for roundness
+                        
+
+
                 AnchorLayout:
                     padding: 40, 0, 180, 0
                     Button:
+                        id: process_button
                         text: "Process"
                         font_size: 32
                         size_hint: (1, 0.5)
-                        on_release: root.start_processing()
+                        on_release: root.on_process_button_press()
+                        background_color: (0.5, 0.5, 0.5, 0.5)  # Makes the default button background transparent
+                        canvas.before:
+                            Color:
+                                rgba: (1, 1, 1, 1)  # Button color (white in this case)
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [10]  # Adjust the radius for roundness
+                
+

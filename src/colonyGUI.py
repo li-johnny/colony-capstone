@@ -6,6 +6,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty
 from plyer import filechooser
+from kivy.clock import Clock
+
 
 # Set app size
 Window.size = (1000, 700)
@@ -27,6 +29,7 @@ class MyGridLayout(Widget):
 
     def __init__(self, **kwargs):
         super(MyGridLayout, self).__init__(**kwargs)
+        self.processing = True  # Flag to indicate if it's processing or exporting
         Window.bind(on_drop_file=self.file_drop)
 
     # Open the file expolorer when the upload button is pressed
@@ -60,7 +63,34 @@ class MyGridLayout(Widget):
         self.ids.previewer.source = source
     
     def start_processing(self):
-        print("Processing started...")         
+        print("Processing started...")   
+
+    def start_exporting(self):
+        print("Exportinging started...")  
+
+    def replace_with_export(self):
+        self.ids.process_button.text = "Export"
+        self.processing = False
+
+
+
+
+
+
+
+    def on_process_button_press(self):
+        try:
+            if self.processing:
+                self.start_processing()
+                self.replace_with_export()
+            else:
+                self.start_exporting()
+        except Exception as e:
+            print(f"Error: {e}")
+
+
+
+      
 
 class colonyGUI(App):
     def build(self):
