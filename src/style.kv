@@ -19,12 +19,28 @@
                 size_hint: (0.15, 0.15)
                 on_release: root.remove()
 
+# Container for colony count and edit button
+<InfoContainer>
+    size_hint: (0.4, 1)
+    orientation: 'vertical'
+    padding: 0, 0, 20, 0
+    Label:
+        size_hint: (1, 0.6)
+        text: "Colonies Detected:"
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
+        Button:
+            size_hint: (1, 0.1)
+            text: "Edit"
+            on_release: root.edit()
+
 <MyGridLayout>
     GridLayout:
         cols: 2
         size: root.width, root.height
 
-        
+
         # Imported images container on the left side of the screen
         ScrollView:
             size_hint: (0.4, 1)
@@ -48,6 +64,7 @@
             size_hint: (1, 1)
             GridLayout:
                 cols: 2
+                id: info_container
                 canvas.before:
                     Color:
                         rgba: 0.286, 0.361, 0.51, 1
@@ -55,13 +72,12 @@
                         pos: self.pos
                         size: self.size
                 AnchorLayout:
-                    padding: 230, 50, 230, 10
+                    # padding: 230, 50, 230, 10
                     AsyncImage:
                         id: previewer
                         source: None
                         opacity: 0
-                # Label:
-                #     text: "Test"
+                # InfoContainer:
 
             GridLayout:
                 cols: 3
@@ -90,7 +106,7 @@
                                 size: self.size
                                 pos: self.pos
                                 radius: [10]  # Adjust the radius for roundness
-                        
+
 
 
                 AnchorLayout:
@@ -109,5 +125,3 @@
                                 size: self.size
                                 pos: self.pos
                                 radius: [10]  # Adjust the radius for roundness
-                
-

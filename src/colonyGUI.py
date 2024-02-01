@@ -25,6 +25,13 @@ class ImageContainerWidget(BoxLayout):
         self.parent.remove_widget(self)
         images.remove(self.source)
 
+class InfoContainer(BoxLayout):
+    def edit(self):
+        print("Edit mode")
+    
+    def remove(self):
+        self.parent.remove_widget(self)
+
 class MyGridLayout(Widget):
 
     def __init__(self, **kwargs):
@@ -68,17 +75,17 @@ class MyGridLayout(Widget):
     # Update Image in the image previewer
     def previewer_update(self, source):
         self.ids.previewer.source = source
-        
 
     def activate_cancel(self):
         self.ids.process_button.text = "Process"
         self.ids.upload_button.text = "Upload"
         self.processing = True
-
-        
+        self.infoContainer.remove()
     
     def start_processing(self):
-        print("Processing started...")   
+        print("Processing started...")
+        self.infoContainer = InfoContainer()
+        self.ids.info_container.add_widget(self.infoContainer)
 
     def start_exporting(self):
         print("Exportinging started...")  
@@ -87,11 +94,6 @@ class MyGridLayout(Widget):
         self.ids.process_button.text = "Export"
         self.ids.upload_button.text = "Cancel"
         self.processing = False
-
-
-
-
-
 
 
     def on_process_button_press(self):
@@ -104,9 +106,6 @@ class MyGridLayout(Widget):
         except Exception as e:
             print(f"Error: {e}")
 
-
-
-      
 
 class colonyGUI(App):
     def build(self):
