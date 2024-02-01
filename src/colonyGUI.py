@@ -33,8 +33,15 @@ class MyGridLayout(Widget):
         Window.bind(on_drop_file=self.file_drop)
 
     # Open the file expolorer when the upload button is pressed
-    def file_explorer(self):
-        filechooser.open_file(on_selection = self.selected, multiple = True)
+    def file_explorer_or_cancel(self):
+        try:
+            if self.processing:
+                filechooser.open_file(on_selection = self.selected, multiple = True)
+            else:
+                self.activate_cancel()
+        except Exception as e:
+            print(f"Error: {e}")
+        
     
     # Send dropped in images to load_image()
     def file_drop(self, window, file_path, x, y): 
@@ -61,6 +68,14 @@ class MyGridLayout(Widget):
     # Update Image in the image previewer
     def previewer_update(self, source):
         self.ids.previewer.source = source
+        
+
+    def activate_cancel(self):
+        self.ids.process_button.text = "Process"
+        self.ids.upload_button.text = "Upload"
+        self.processing = True
+
+        
     
     def start_processing(self):
         print("Processing started...")   
@@ -68,8 +83,9 @@ class MyGridLayout(Widget):
     def start_exporting(self):
         print("Exportinging started...")  
 
-    def replace_with_export(self):
+    def replace_with_export_and_cancel(self):
         self.ids.process_button.text = "Export"
+        self.ids.upload_button.text = "Cancel"
         self.processing = False
 
 
@@ -82,7 +98,7 @@ class MyGridLayout(Widget):
         try:
             if self.processing:
                 self.start_processing()
-                self.replace_with_export()
+                self.replace_with_export_and_cancel()
             else:
                 self.start_exporting()
         except Exception as e:

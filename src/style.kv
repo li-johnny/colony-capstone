@@ -77,10 +77,11 @@
                     # padding: [padding_left, padding_top, padding_right, padding_bottom]
                     padding: 180, 0, 40, 0
                     Button:
+                        id: upload_button
                         text: "Upload"
                         font_size: 32
                         size_hint: (1, 0.5)
-                        on_release: root.file_explorer()
+                        on_release: root.file_explorer_or_cancel()
                         background_color: (0.5, 0.5, 0.5, 0.5)  # Makes the default button background transparent
                         canvas.before:
                             Color:
