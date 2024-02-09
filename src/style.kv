@@ -1,64 +1,170 @@
 <ImageContainerWidget>:
     id: container
-    FloatLayout:
+    RelativeLayout:
+        Button:
+            opacity: 0
+            on_release: app.myLayout.previewer_update(root.source)
         AsyncImage:
             id: image
             source: root.source
             size_hint: (1, 1)
-            pos_hint: {'x': 0, 'center_y': .5}
-        Button:
-            text: "X"
-            font_size: 12
-            size_hint: (0.15, 0.05)
-            pos_hint: {'x': 0.8, 'center_y': .6}
-            on_release: root.remove()
+            fit_mode: 'cover'
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'top'
+            padding: 0, 10, 10, 0
+            Button:
+                text: "X"
+                font_size: 14
+                size_hint: (0.15, 0.15)
+                on_release: root.remove()
 
-<MyGridLayout>
+# Container for colony count and edit button
+<InfoContainer>
+    size_hint: (0.4, 1)
+    orientation: 'vertical'
+    padding: 0, 0, 20, 0
 
-    GridLayout:
-        cols: 1
-        size: root.width, root.height
+    # Spacer widget for space at the top
+    Widget:
+        size_hint_y: None
+        height: 50 
+
+    BoxLayout:
+        size_hint: (1, 0.4)
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: (0.3, 0.3, 0.3, 1) 
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [30]
 
         Label:
-            text: "Test"
+            text: "Colonies Detected:"
+            font_size: 40
+            halign: 'center'
+            valign: 'bottom'
+            text_size: self.size
 
+        Label:
+            text: "XX"
+            font_size: 40
+            halign: 'center'
+            valign: 'top'
+            text_size: self.size
+
+
+    # Spacer widget
+    Widget:
+        size_hint_y: None
+        height: 50
+
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'top'
         Button:
-            text: "Upload"
-            font_size: 32
-            size_hint: (None, 0.1)
-            width: 200
-            on_release: root.file_explorer()
+            size_hint: (1, 0.2)
+            text: "Edit"
+            font_size: 60
+            on_release: root.edit()
+            background_color: (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
+            canvas.before:
+                Color:
+                    rgba: (0.3, 0.3, 0.3, 1)  # Button color 
+                RoundedRectangle:
+                    size: self.size
+                    pos: self.pos
+                    radius: [30]  
 
-        Button:
-            text: "Process"
-            font_size: 32
-            size_hint: (None, 0.1)
-            width: 200
-            on_release: root.start_processing()
+<MyGridLayout>
+    GridLayout:
+        cols: 2
+        size: root.width, root.height
 
 
+        # Imported images container on the left side of the screen
+        ScrollView:
+            size_hint: (0.4, 1)
+            canvas.before:
+                Color:
+                    rgba: 0.2, 0.2, 0.25, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            GridLayout:
+                id: image_box
+                cols: 2
+                size_hint: (1, None)
+                height: self.minimum_height
+                row_default_height: self.width/2
+                col_default_width: self.width/2
+
+        # Right side of the screen with image previewer and upload/process buttons
         GridLayout:
-            cols: 2
-
-            ScrollView:
-                size_hint: (0.8, 1)
+            cols: 1
+            size_hint: (1, 1)
+            GridLayout:
+                cols: 2
+                id: info_container
                 canvas.before:
                     Color:
-                        rgba: 0.2, 0.2, 0.2, 1
+                        rgba: 0.286, 0.361, 0.51, 1
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                GridLayout:
-                    id: image_box
-                    rows: 1
-                    width: self.minimum_width
-                    size_hint: (None, 1)
-                    col_default_width: 150
+                AnchorLayout:
+                    # padding: 230, 50, 230, 10
+                    AsyncImage:
+                        id: previewer
+                        source: None
+                        opacity: 0
+                # InfoContainer:
 
-            Label:
+            GridLayout:
+                cols: 3
+                size_hint: (1, 0.3)
                 canvas.before:
                     Color:
-                        rgba: 1, 1, 1, 1
+                        rgba: 0.286, 0.361, 0.51, 1  # Set to the same color as cols: 2
                     Rectangle:
                         pos: self.pos
                         size: self.size
+
+                AnchorLayout:
+                    # padding: [padding_left, padding_top, padding_right, padding_bottom]
+                    padding: 180, 0, 40, 0
+                    Button:
+                        id: upload_button
+                        text: "Upload"
+                        font_size: 80
+                        size_hint: (1, 0.5)
+                        on_release: root.file_explorer_or_cancel()
+                        background_color: (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
+                        canvas.before:
+                            Color:
+                                rgba: (0.3, 0.3, 0.3, 1)  # Button color 
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [30]  
+
+
+
+                AnchorLayout:
+                    padding: 40, 0, 180, 0
+                    Button:
+                        id: process_button
+                        text: "Process"
+                        font_size: 80
+                        size_hint: (1, 0.5)
+                        on_release: root.on_process_button_press()
+                        background_color: (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
+                        canvas.before:
+                            Color:
+                                rgba: (0.3, 0.3, 0.3, 1)  # Button color 
+                            RoundedRectangle:
+                                size: self.size
+                                pos: self.pos
+                                radius: [30]  
