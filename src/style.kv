@@ -31,7 +31,8 @@
         height: 50 
 
     BoxLayout:
-        size_hint: (1, 0.4)
+        size_hint_y: None
+        height: 250  # Fixed height to maintain size
         orientation: 'vertical'
         canvas.before:
             Color:
@@ -40,20 +41,28 @@
                 size: self.size
                 pos: self.pos
                 radius: [30]
+        
+        Widget:
+            size_hint_y: 1
 
         Label:
             text: "Colonies Detected:"
             font_size: 40
             halign: 'center'
             valign: 'bottom'
-            text_size: self.size
+            size_hint_y: None
+            height: self.texture_size[1]  
 
         Label:
             text: "XX"
             font_size: 40
             halign: 'center'
             valign: 'top'
-            text_size: self.size
+            size_hint_y: None
+            height: self.texture_size[1] 
+        
+        Widget:
+            size_hint_y: 1
 
 
     # Spacer widget
@@ -64,11 +73,13 @@
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'top'
+        id: edit_button
+        # opacity: 0 if root.tools_visible else 1  # Hide when tools are visible
         Button:
-            size_hint: (1, 0.2)
+            size_hint: (1, 0.4)
             text: "Edit"
             font_size: 60
-            on_release: root.edit()
+            on_release: root.toggle_tools()
             background_color: (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
             canvas.before:
                 Color:
@@ -77,6 +88,150 @@
                     size: self.size
                     pos: self.pos
                     radius: [30]  
+    
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: (1, None)
+        height: 400  
+        id: tools_layout
+        # pos_hint: {'top': 1}  # Position at the top where the Edit button was
+        opacity: 0 # if root.tools_visible else 0  # Show only when tools are visible
+        canvas.before:
+            Color:
+                rgba: (0.3, 0.3, 0.3, 1) # Example: light grey background color
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [30]  
+
+        # Label for the "Tools" section
+        Label:
+            text: "[u]Tools[/u]"
+            font_size: 60
+            size_hint_y: None
+            height: 100
+            halign: 'center'
+            valign: 'middle'
+            markup: True
+
+    
+        GridLayout:
+            cols: 2  # Arrange icons in 2 colmuns
+            size_hint: (1, 1)
+            opacity: 1 if root.tools_visible else 0  # Show only when tools are visible
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                ImageButton:
+                    source: 'img/add_icon.png'
+                    on_press: root.add_colony()
+                    size_hint: (1, 0.8)
+
+                Label:
+                    text: 'Add Colony'
+                    size_hint_y: 0.2
+                    valign: 'middle'
+                    halign: 'center'
+                
+                Widget:
+                    size_hint_y: None
+                    height: 20
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10  # Space between children
+
+                ImageButton:
+                    source: 'img/zoomin_icon.png'
+                    on_press: root.zoom_in()
+                    size_hint: (1, 0.8)
+
+                Label:
+                    text: 'Zoom In'
+                    size_hint_y: 0.2
+                    valign: 'middle'
+                    halign: 'center'
+
+                Widget:
+                    size_hint_y: None
+                    height: 20
+
+            
+            BoxLayout:
+                orientation: 'vertical'
+
+                ImageButton:
+                    source: 'img/remove_icon.png'
+                    on_press: root.remove_colony()
+                    size_hint: (1, 0.8)
+
+                Label:
+                    text: 'Remove Colony'
+                    size_hint_y: 0.2
+                    valign: 'middle'
+                    halign: 'center'
+                    text_size: self.width, None 
+                
+                Widget:
+                    size_hint_y: None
+                    height: 20
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                ImageButton:
+                    source: 'img/zoomout_icon.png'
+                    on_press: root.zoom_out()
+                    size_hint: (1, 0.8)
+
+                Label:
+                    text: 'Zoom Out'
+                    size_hint_y: 0.2
+                    valign: 'middle'
+                    halign: 'center'
+
+                Widget:
+                    size_hint_y: None
+                    height: 20
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                ImageButton:
+                    source: 'img/fullscreen_icon.png'
+                    on_press: root.full_screen()
+                    size_hint: (1, 0.8)
+
+                Label:
+                    text: 'Full Screen'
+                    size_hint_y: 0.2
+                    valign: 'middle'
+                    halign: 'center'
+                
+                Widget:
+                    size_hint_y: None
+                    height: 20
+
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                ImageButton:
+                    source: 'img/on_icon.png' if root.toggle_state else 'img/off_icon.png'
+                    on_press: root.switch_toggle()
+                    size_hint: (1, 0.8)
+
+                Label:
+                    text: 'Toggle View'
+                    size_hint_y: 0.2
+                    valign: 'middle'
+                    halign: 'center'
+                
+                # Spacer widget
+                Widget:
+                    size_hint_y: None
+                    height: 20
 
 <MyGridLayout>
     GridLayout:

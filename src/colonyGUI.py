@@ -7,6 +7,9 @@ from kivy.uix.widget import Widget
 from kivy.properties import StringProperty
 from plyer import filechooser
 from kivy.clock import Clock
+from kivy.properties import BooleanProperty
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image
 
 
 # Set app size
@@ -26,11 +29,66 @@ class ImageContainerWidget(BoxLayout):
         images.remove(self.source)
 
 class InfoContainer(BoxLayout):
+    tools_visible = BooleanProperty(False)
+    toggle_state = BooleanProperty(True)
+
+    def toggle_tools(self):
+        self.tools_visible = not self.tools_visible
+        self.update_ui_based_on_tools_visibility()
+
+    def update_ui_based_on_tools_visibility(self):
+        # Assuming you have an id for your edit button and tool section layout
+        # For example, let's say the id for your edit button is 'edit_button'
+        # and your tool section layout is 'tools_layout'
+        
+        if self.tools_visible:
+            # Hide the edit button
+            self.ids.edit_button.size_hint = (None, None)
+            self.ids.edit_button.size = (0, 0)
+            self.ids.edit_button.opacity = 0
+
+            # Show the tool section
+            self.ids.tools_layout.size_hint = (1, 0.2)
+            self.ids.tools_layout.opacity = 1
+        else:
+            # Show the edit button
+            self.ids.edit_button.size_hint = (1, 0.2)
+            self.ids.edit_button.size = (self.parent.width, 60)  # Adjust the height as needed
+            self.ids.edit_button.opacity = 1
+
+            # Hide the tool section
+            self.ids.tools_layout.size_hint = (None, None)
+            self.ids.tools_layout.size = (0, 0)
+            self.ids.tools_layout.opacity = 0
+
+
     def edit(self):
         print("Edit mode")
     
+    def add_colony(self):
+        print("Add Colony was pressed")
+    
+    def remove_colony(self):
+        print("Remove Colony was pressed")
+    
+    def zoom_in(self):
+        print("Zoom In was pressed")
+
+    def zoom_out(self):
+        print("Zoom Out was pressed")
+    
+    def full_screen(self):
+        print("Full_Screen was pressed")
+    
+    def switch_toggle(self):
+        self.toggle_state = not self.toggle_state
+        print("Toggle button was pressed, state is now:", "On" if self.toggle_state else "Off")
+    
+    
     def remove(self):
         self.parent.remove_widget(self)
+
+
 
 class MyGridLayout(Widget):
 
@@ -105,6 +163,15 @@ class MyGridLayout(Widget):
                 self.start_exporting()
         except Exception as e:
             print(f"Error: {e}")
+
+    
+
+class ImageButton(ButtonBehavior, Image):
+    pass
+
+class CustomLayout(BoxLayout):
+    pass
+
 
 
 class colonyGUI(App):
