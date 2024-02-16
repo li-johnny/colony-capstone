@@ -59,6 +59,24 @@ def main():
         images[i] = annotate_image(images[i], colonies[i])
         cv.imwrite('2023-11-21-Annotated/IMG_' + str(i + 4574) + '.jpg', images[i])
 
+def process_images_from_paths(paths):
+    images = np.array()
+
+    # prepare reading of heic images
+    register_heif_opener()
+
+    for path in paths:
+        
+        if (path.lower().endswith(('.png', '.jpg', '.jpeg'))):
+            np.append(images, cv.imread(path, cv.IMREAD_COLOR))
+        elif (path.lower().endswith(('.heic'))):
+            np.append(images, cv.cvtColor(np.array(Image.open(path).convert('RGB')), cv.COLOR_RGB2BGR))
+        else:
+            print("Unsupported filetype: ", path)
+        pass
+
+    return process_images(images)
+
 # this function processes a list of images stored as numpy arrays
 def process_images(images, detection_data = DetectionData(cv.HOUGH_GRADIENT_ALT, 1, 10, 100, 0.9, 2, 50)):
 
