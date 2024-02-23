@@ -60,7 +60,7 @@ def main():
         cv.imwrite('2023-11-21-Annotated/IMG_' + str(i + 4574) + '.jpg', images[i])
 
 def process_images_from_paths(paths):
-    images = np.array()
+    images = []
 
     # prepare reading of heic images
     register_heif_opener()
@@ -68,20 +68,27 @@ def process_images_from_paths(paths):
     for path in paths:
         
         if (path.lower().endswith(('.png', '.jpg', '.jpeg'))):
-            np.append(images, cv.imread(path, cv.IMREAD_COLOR))
+            image = cv.imread(path, cv.IMREAD_COLOR)
+            # cv.imshow("Image", image)
+            # cv.waitKey(0)
+            # cv.destroyAllWindows()
+            images.append(image)
         elif (path.lower().endswith(('.heic'))):
-            np.append(images, cv.cvtColor(np.array(Image.open(path).convert('RGB')), cv.COLOR_RGB2BGR))
+            # print("reading as heic")
+            images.append(cv.cvtColor(np.array(Image.open(path).convert('RGB')), cv.COLOR_RGB2BGR))
         else:
-            print("Unsupported filetype: ", path)
+            print("Could not find file: ", path)
         pass
-
+    print("Number of images opened: " + str(len(images)))
+    # Convert the images to black and white
+    images = [cv.cvtColor(recolor_image(img), cv.COLOR_BGR2GRAY) for img in images]
     return process_images(images)
 
 # this function processes a list of images stored as numpy arrays
 def process_images(images, detection_data = DetectionData(cv.HOUGH_GRADIENT_ALT, 1, 10, 100, 0.9, 2, 50)):
 
-    dishes = np.empty(IMAGE_NUMBER, dtype='object')
-    colonies = np.empty(IMAGE_NUMBER, dtype='object')
+    dishes = np.empty(len(images), dtype='object')
+    colonies = np.empty(len(images), dtype='object')
     
     # detect dishes in images
     for i in range(len(images)): 
@@ -169,4 +176,7 @@ def detect_dish(img):
     return None
 
 if (__name__ == "__main__"):
-  main()
+  # main()
+    colonies, images = process_images_from_paths(["img1.jpg", "img1.jpg", "2023-11-21\IMG_4605.HEIC"])
+    for c in colonies:
+        print(len(c[0]))
