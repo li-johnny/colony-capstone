@@ -31,6 +31,7 @@ class ImageContainerWidget(BoxLayout):
 class InfoContainer(BoxLayout):
     tools_visible = BooleanProperty(False)
     toggle_state = BooleanProperty(True)
+    fullscreen_mode = BooleanProperty(False)
 
     def toggle_tools(self):
         self.tools_visible = not self.tools_visible
@@ -78,7 +79,23 @@ class InfoContainer(BoxLayout):
         print("Zoom Out was pressed")
     
     def full_screen(self):
-        print("Full_Screen was pressed")
+        # Get the current running app instance
+        app = App.get_running_app()
+        self.fullscreen_mode = not self.fullscreen_mode
+        # Assuming the root widget is MyGridLayout or has an attribute to access it
+        if self.fullscreen_mode:
+            self.size_hint = (0.26, 0.3)
+            self.ids.tools_layout.size_hint_y = 0.3  # Adjust for fullscreen mode
+            self.ids.tools_layout.height = 300  # Example adjustment
+        else:
+            self.size_hint = (0.4, 0.1)
+
+        if hasattr(app, 'root'):
+            my_grid_layout = app.root  # or however you can access MyGridLayout from app
+            my_grid_layout.toggle_fullscreen()
+        else:
+            print("MyGridLayout instance not found")
+
     
     def switch_toggle(self):
         self.toggle_state = not self.toggle_state
@@ -91,6 +108,7 @@ class InfoContainer(BoxLayout):
 
 
 class MyGridLayout(Widget):
+    fullscreen_mode = BooleanProperty(False)  # Track fullscreen mode state
 
     def __init__(self, **kwargs):
         super(MyGridLayout, self).__init__(**kwargs)
@@ -143,7 +161,7 @@ class MyGridLayout(Widget):
     def start_processing(self):
         print("Processing started...")
         self.infoContainer = InfoContainer()
-        self.ids.info_container.add_widget(self.infoContainer)
+        self.ids.right_side_layout.add_widget(self.infoContainer)
 
     def start_exporting(self):
         print("Exportinging started...")  
@@ -164,6 +182,48 @@ class MyGridLayout(Widget):
         except Exception as e:
             print(f"Error: {e}")
 
+    def toggle_fullscreen(self):
+        self.fullscreen_mode = not self.fullscreen_mode
+        # app = App.get_running_app()
+        # info_container = app.root.ids.info_container
+
+        if self.fullscreen_mode:
+            # Enter fullscreen mode
+            # self.ids.async_image.size_hint = (0, 0)  # Hide image list
+            # info_container.size_hint = (0.7, 0.7)
+            # container.ids.info_container.size_hint = (0.1, 0.1)
+            self.ids.image_scroll_view.size_hint = (0, 0)  # Hide image list
+            self.ids.upload_process_container.size_hint = (0,0)
+            self.ids.upload_button.opacity = 0
+            self.ids.upload_button.text = ""
+            self.ids.process_button.opacity = 0
+            self.ids.process_button.text = ""
+            
+            # self.ids.info_container.size_hint = (1, 1)  # Maximize info container
+            # You might need to adjust other elements' visibility or size here
+
+            # self.ids.previewer.size_hint = (1, 1)  # Maximize previewer size
+            # self.ids.previewer.keep_ratio = False  # Optional: Change aspect ratio
+            # self.ids.previewer.allow_stretch = True  # Allow image stretching
+        else:
+            # Exit fullscreen mode, restore original layout
+            # self.info_container.size_hint = (0.1, 0.3)
+            self.ids.image_scroll_view.size_hint = (0.4, 1)
+            self.ids.upload_process_container.size_hint = (1,0.3)
+            self.ids.upload_button.opacity = 1
+            self.ids.upload_button.text = "Cancel"
+            self.ids.process_button.opacity = 1
+            self.ids.process_button.text = "Export"
+            # self.ids.upload_button.size_hint = (1,0.5)
+            # self.ids.async_image.size_hint = (0.4, 1)  # Restore image list
+            # self.ids.image_scroll_view.size_hint = (0.4, 0)
+            # self.ids.info_container.size_hint = (0.6, 1)  # Restore info container size
+            # Restore other elements' visibility or size here as needed
+
+            self.ids.previewer.size_hint = (1, 0.7)  # Restore previewer size
+            self.ids.previewer.keep_ratio = True  # Restore aspect ratio
+            self.ids.previewer.allow_stretch = False  # Disable image stretching
+
     
 
 class ImageButton(ButtonBehavior, Image):
@@ -178,6 +238,7 @@ class colonyGUI(App):
     def build(self):
         self.myLayout = MyGridLayout()
         return self.myLayout
+    
     
 if __name__ == '__main__':
     colonyGUI().run()
