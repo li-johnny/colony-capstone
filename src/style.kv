@@ -10,12 +10,14 @@
         Button:
             id: invisible_button
             opacity: 0
-            on_release: app.myLayout.previewer_update(root.source)
-        AsyncImage:
-            id: async_image
-            source: root.source
-            size_hint: (1, 1)
-            fit_mode: 'cover'
+            on_release: app.myLayout.previewer_update(root.source, root.texture)
+        BoxLayout:
+            id: swap
+            AsyncImage:
+                id: async_image
+                source: root.source
+                size_hint: (1, 1)
+                fit_mode: 'cover'
         AnchorLayout:
             anchor_x: 'right'
             anchor_y: 'top'
@@ -25,6 +27,22 @@
                 font_size: 14
                 size_hint: (0.15, 0.15)
                 on_release: root.remove()
+
+# Contains the previewer window with a zoomable image
+<PreviewerContainer>
+    previewer: previewer.__self__
+    id: prevSwap
+    pos: root.parent.pos
+    size: previewer.size
+    do_rotation: False
+    RelativeLayout:
+        id: relativeContainer
+        size: root.parent.width, root.parent.height
+        AsyncImage:
+            id: previewer
+            size: root.parent.width, root.parent.height
+            source: root.source
+            opacity: 0
 
 # Container for colony count and edit button
 <InfoContainer>
@@ -36,7 +54,7 @@
     # Spacer widget for space at the top
     Widget:
         size_hint_y: None
-        height: 50 
+        height: 50
 
     BoxLayout:
         size_hint_y: None
@@ -44,12 +62,12 @@
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgba: (0.3, 0.3, 0.3, 1) 
+                rgba: (0.3, 0.3, 0.3, 1)
             RoundedRectangle:
                 size: self.size
                 pos: self.pos
                 radius: [30]
-        
+
         Widget:
             size_hint_y: 1
 
@@ -59,7 +77,7 @@
             halign: 'center'
             valign: 'bottom'
             size_hint_y: None
-            height: self.texture_size[1]  
+            height: self.texture_size[1]
 
         Label:
             text: "XX"
@@ -67,8 +85,8 @@
             halign: 'center'
             valign: 'top'
             size_hint_y: None
-            height: self.texture_size[1] 
-        
+            height: self.texture_size[1]
+
         Widget:
             size_hint_y: 1
 
@@ -92,16 +110,16 @@
             background_color: (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
             canvas.before:
                 Color:
-                    rgba: (0.3, 0.3, 0.3, 1)  # Button color 
+                    rgba: (0.3, 0.3, 0.3, 1)  # Button color
                 RoundedRectangle:
                     size: self.size
                     pos: self.pos
-                    radius: [30]  
-    
+                    radius: [30]
+
     BoxLayout:
         orientation: 'vertical'
         size_hint: (1, 0.6)
-   
+
         id: tools_layout
         # pos_hint: {'top': 1}  # Position at the top where the Edit button was
         opacity: 0 # if root.tools_visible else 0  # Show only when tools are visible
@@ -111,7 +129,7 @@
             RoundedRectangle:
                 pos: self.pos
                 size: self.size
-                radius: [30]  
+                radius: [30]
 
         # Label for the "Tools" section
         Label:
@@ -123,7 +141,7 @@
             valign: 'middle'
             markup: True
 
-    
+
         GridLayout:
             cols: 2  # Arrange icons in 2 colmuns
             size_hint: (1, 1)
@@ -142,7 +160,7 @@
                     size_hint_y: 0.2
                     valign: 'middle'
                     halign: 'center'
-                
+
                 Widget:
                     size_hint_y: 0.1
                     # height: 20
@@ -153,7 +171,7 @@
 
                 ImageButton:
                     source: 'img/zoomin_icon.png'
-                    on_press: root.zoom_in()
+                    on_press: root.zoom_in() ; app.myLayout.ids.prevContainer.zoom_in()
                     size_hint: (1, 0.7)
 
                 Label:
@@ -165,7 +183,7 @@
                 Widget:
                     size_hint_y: 0.1
 
-            
+
             BoxLayout:
                 orientation: 'vertical'
 
@@ -179,8 +197,8 @@
                     size_hint_y: 0.2
                     valign: 'middle'
                     halign: 'center'
-                    text_size: self.width, None 
-                
+                    text_size: self.width, None
+
                 Widget:
                     size_hint_y: 0.1
 
@@ -189,7 +207,7 @@
 
                 ImageButton:
                     source: 'img/zoomout_icon.png'
-                    on_press: root.zoom_out()
+                    on_press: root.zoom_out() ; app.myLayout.ids.prevContainer.zoom_out()
                     size_hint: (1, 0.7)
 
                 Label:
@@ -214,7 +232,7 @@
                     size_hint_y: 0.2
                     valign: 'middle'
                     halign: 'center'
-                
+
                 Widget:
                     size_hint_y: 0.1
 
@@ -224,7 +242,7 @@
 
                 ImageButton:
                     source: 'img/on_icon.png' if root.toggle_state else 'img/off_icon.png'
-                    on_press: root.switch_toggle()
+                    on_press: root.switch_toggle() ; app.myLayout.toggle_images()
                     size_hint: (1, 0.7)
 
                 Label:
@@ -232,16 +250,16 @@
                     size_hint_y: 0.2
                     valign: 'middle'
                     halign: 'center'
-                
+
                 # Spacer widget
                 Widget:
                     size_hint_y: 0.1
-        
+
     # Spacer widget
     Widget:
         size_hint_y: None
         height: 50
-            
+
 
 
 <MyGridLayout>
@@ -275,6 +293,7 @@
             cols: 1
             size_hint: (1, 1)
             GridLayout:
+
                 cols: 2
                 id: right_side_layout
                 canvas.before:
@@ -284,13 +303,9 @@
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                AnchorLayout:
-                    # padding: 230, 50, 230, 10
-                    AsyncImage:
-                        id: previewer
-                        source: None
-                        opacity: 0
-                # InfoContainer:
+                StencilView:
+                    PreviewerContainer:
+                        id: prevContainer
 
             GridLayout:
                 cols: 3
@@ -316,11 +331,11 @@
                         background_color: (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
                         canvas.before:
                             Color:
-                                rgba: (0.3, 0.3, 0.3, 1)  # Button color 
+                                rgba: (0.3, 0.3, 0.3, 1)  # Button color
                             RoundedRectangle:
                                 size: self.size
                                 pos: self.pos
-                                radius: [30]  
+                                radius: [30]
 
 
 
@@ -335,11 +350,8 @@
                         background_color: (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
                         canvas.before:
                             Color:
-                                rgba: (0.3, 0.3, 0.3, 1)  # Button color 
+                                rgba: (0.3, 0.3, 0.3, 1)  # Button color
                             RoundedRectangle:
                                 size: self.size
                                 pos: self.pos
-                                radius: [30]  
-
-
-
+                                radius: [30]
