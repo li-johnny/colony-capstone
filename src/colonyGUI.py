@@ -310,6 +310,7 @@ class MyGridLayout(Widget):
             self.ids.upload_button.text = ""
             self.ids.process_button.opacity = 0
             self.ids.process_button.text = ""
+            self.ids.prevContainer.reset_image()
             
             # self.ids.info_container.size_hint = (1, 1)  # Maximize info container
             # You might need to adjust other elements' visibility or size here
@@ -332,9 +333,10 @@ class MyGridLayout(Widget):
             # self.ids.info_container.size_hint = (0.6, 1)  # Restore info container size
             # Restore other elements' visibility or size here as needed
 
-            self.ids.previewer.size_hint = (1, 0.7)  # Restore previewer size
-            self.ids.previewer.keep_ratio = True  # Restore aspect ratio
-            self.ids.previewer.allow_stretch = False  # Disable image stretching
+            self.ids.prevContainer.reset_image()
+            # self.ids.previewer.size_hint = (1, 0.7)  # Restore previewer size
+            # self.ids.previewer.keep_ratio = True  # Restore aspect ratio
+            # self.ids.previewer.allow_stretch = False  # Disable image stretching
 
     
     # Toggle images between processed and non-processed versions
