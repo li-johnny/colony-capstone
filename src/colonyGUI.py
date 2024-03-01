@@ -66,7 +66,7 @@ class PreviewerContainer(Scatter):
     # Implements zoom functionality for previewer image
     # Code inspired from https://stackoverflow.com/questions/49807052/kivy-scroll-to-zoom
     def on_touch_down(self, touch):
-        if touch.is_mouse_scrolling:
+        if touch.is_mouse_scrolling & self.parent.collide_point(*touch.pos):
             factor = None
             if touch.button == 'scrolldown':
                 if self.scale < 10:
