@@ -57,8 +57,9 @@
         height: 50
 
     BoxLayout:
-        size_hint_y: None
-        height: 250  # Fixed height to maintain size
+        id: colonies_detected_section
+        size_hint_y: 0.3
+        # height: 250  # Fixed height to maintain size
         orientation: 'vertical'
         canvas.before:
             Color:
@@ -102,8 +103,8 @@
         id: edit_button
         # opacity: 0 if root.tools_visible else 1  # Hide when tools are visible
         Button:
-            size_hint: (1, None)
-            height: 200
+            size_hint: (1, 0.3)
+            # height: 200
             text: "Edit"
             font_size: 60
             on_release: root.toggle_tools()
@@ -223,7 +224,7 @@
                 orientation: 'vertical'
 
                 ImageButton:
-                    source: 'img/fullscreen_icon.png'
+                    source: 'img/fullscreen_icon.png'if not root.fullscreen_mode else 'img/exit_fullscreen_icon.png'
                     on_press: root.full_screen()
                     size_hint: (1, 0.7)
 
@@ -257,8 +258,9 @@
 
     # Spacer widget
     Widget:
-        size_hint_y: None
-        height: 50
+        id: spacer_under_infocontainer
+        size_hint_y: 0.01
+
 
 
 

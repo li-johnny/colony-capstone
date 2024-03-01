@@ -15,6 +15,8 @@ from plyer import filechooser
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 from count import process_images_from_paths
+from kivy.clock import Clock
+
 import cv2 as cv
 
 
@@ -130,6 +132,8 @@ class InfoContainer(BoxLayout):
             self.ids.edit_button.size = (0, 0)
             self.ids.edit_button.opacity = 0
 
+            self.ids.colonies_detected_section.size_hint = (1, 0.038)
+
             # Show the tool section
             self.ids.tools_layout.size_hint = (1, 0.2)
             self.ids.tools_layout.opacity = 1
@@ -166,11 +170,13 @@ class InfoContainer(BoxLayout):
         self.fullscreen_mode = not self.fullscreen_mode
         # Assuming the root widget is MyGridLayout or has an attribute to access it
         if self.fullscreen_mode:
-            self.size_hint = (0.26, 0.3)
-            self.ids.tools_layout.size_hint_y = 0.3  # Adjust for fullscreen mode
-            self.ids.tools_layout.height = 300  # Example adjustment
+            print("Full Screen was pressed")
+            self.size_hint = (None, 1)
+            self.ids.spacer_under_infocontainer.size_hint_y = 0.092
         else:
+            print("Exit Full Screen was pressed")
             self.size_hint = (0.4, 0.1)
+            self.ids.spacer_under_infocontainer.size_hint_y = 0.01
 
         if hasattr(app, 'root'):
             my_grid_layout = app.root  # or however you can access MyGridLayout from app
@@ -355,7 +361,15 @@ class MyGridLayout(Widget):
         self.ids.prevContainer.swap_image()
 
 class ImageButton(ButtonBehavior, Image):
-    pass
+    def on_press(self):
+        # Temporarily change the color tint to indicate a highlight
+        # RGBA format, slightly darker or different color
+        self.color = (0.1, 0.8, 0.8, 1)
+        Clock.schedule_once(self.remove_highlight, 0.3)
+
+    def remove_highlight(self, *args):
+        # Revert to the original color tint
+        self.color = (1, 1, 1, 1)  # White means no color tint
 
 class CustomLayout(BoxLayout):
     pass
