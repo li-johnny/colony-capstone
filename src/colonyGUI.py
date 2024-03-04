@@ -16,6 +16,12 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 from count import process_images_from_paths
 from kivy.clock import Clock
+from kivy.uix.button import Button
+from kivy.graphics import Color, RoundedRectangle
+from kivy.uix.label import Label
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty
+
+
 
 import cv2 as cv
 
@@ -35,14 +41,56 @@ swap = 1
 class ImageContainerWidget(BoxLayout):
     source = StringProperty()
     texture = ObjectProperty()
+    is_selected = BooleanProperty(False)
+    border_color = ListProperty([0, 0, 0, 0])
+
+
+    def __init__(self, **kwargs):
+        super(ImageContainerWidget, self).__init__(**kwargs)
+        self.bind(is_selected=self.update_border_color)
+
+    # def on_touch_down(self, touch):
+    #     if self.collide_point(*touch.pos):
+    #         self.is_selected = not self.is_selected
+    #         if self.is_selected:
+    #             self.deselect_others()
+    #         # Assuming 'my_grid_layout' is a reference to your MyGridLayout instance
+    #         self.my_grid_layout.previewer_update(self.source, self.texture)
+    #         return True
+    #     else:
+    #         # Let the event propagate to other widgets
+    #         return super(ImageContainerWidget, self).on_touch_down(touch)
+        
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.is_selected = not self.is_selected
+            if self.is_selected:
+                self.deselect_others()
+            self.my_grid_layout.previewer_update(self.source, self.texture)
+
+        return super(ImageContainerWidget, self).on_touch_down(touch)
+
+    def update_border_color(self, instance, value):
+        if self.is_selected:
+            self.border_color = [0.1, 0.8, 0.8, 1]  # RGBA for blue
+        else:
+            self.border_color = [0, 0, 0, 0]  # Reset to transparent
+
+    def deselect_others(self):
+        for container in imageContainers:
+            if container != self:
+                container.is_selected = False
+
 
     def remove(self):
+        # print("remove is called")
         self.parent.remove_widget(self)
         for i in range(len(images)):
             if (images[i][0] == self.source):
                 del images[i]
                 del imageContainers[i]
                 break
+
     
     # Swap image with processed image and back
     def swap_image(self):
@@ -66,6 +114,7 @@ class PreviewerContainer(Scatter):
     # Implements zoom functionality for previewer image
     # Code inspired from https://stackoverflow.com/questions/49807052/kivy-scroll-to-zoom
     def on_touch_down(self, touch):
+        # print("on_touch_down in PreviewerContainer")
         if touch.is_mouse_scrolling:
             factor = None
             if touch.button == 'scrolldown':
@@ -122,9 +171,6 @@ class InfoContainer(BoxLayout):
         self.update_ui_based_on_tools_visibility()
 
     def update_ui_based_on_tools_visibility(self):
-        # Assuming you have an id for your edit button and tool section layout
-        # For example, let's say the id for your edit button is 'edit_button'
-        # and your tool section layout is 'tools_layout'
         
         if self.tools_visible:
             # Hide the edit button
@@ -232,6 +278,16 @@ class MyGridLayout(Widget):
             imageContainers.append(imageContainer)
             self.ids.image_box.add_widget(imageContainer)
             images.append([file_path, None])
+
+            # Set a reference to this MyGridLayout instance on the new ImageContainerWidget
+            imageContainer.my_grid_layout = self
+
+            for container in imageContainers[:-1]:  # Exclude the last one, which is the newly added
+                container.is_selected = False
+
+            # Select the last added image
+            imageContainers[-1].is_selected = True 
+
             self.ids.prevContainer.source = file_path
             self.ids.prevContainer.ids.previewer.opacity = 1
             print(images)
@@ -240,6 +296,7 @@ class MyGridLayout(Widget):
     
     # Update Image in the image previewer
     def previewer_update(self, source, texture):
+        print("previewer_update")
         global swap
         container = self.ids.prevContainer
         container.reset_image()
@@ -307,9 +364,7 @@ class MyGridLayout(Widget):
 
         if self.fullscreen_mode:
             # Enter fullscreen mode
-            # self.ids.async_image.size_hint = (0, 0)  # Hide image list
-            # info_container.size_hint = (0.7, 0.7)
-            # container.ids.info_container.size_hint = (0.1, 0.1)
+
             self.ids.image_scroll_view.size_hint = (0, 0)  # Hide image list
             self.ids.upload_process_container.size_hint = (0,0)
             self.ids.upload_button.opacity = 0
@@ -318,31 +373,17 @@ class MyGridLayout(Widget):
             self.ids.process_button.text = ""
             self.ids.prevContainer.reset_image()
             
-            # self.ids.info_container.size_hint = (1, 1)  # Maximize info container
-            # You might need to adjust other elements' visibility or size here
-
-            # self.ids.previewer.size_hint = (1, 1)  # Maximize previewer size
-            # self.ids.previewer.keep_ratio = False  # Optional: Change aspect ratio
-            # self.ids.previewer.allow_stretch = True  # Allow image stretching
         else:
             # Exit fullscreen mode, restore original layout
-            # self.info_container.size_hint = (0.1, 0.3)
             self.ids.image_scroll_view.size_hint = (0.4, 1)
             self.ids.upload_process_container.size_hint = (1,0.3)
             self.ids.upload_button.opacity = 1
             self.ids.upload_button.text = "Cancel"
             self.ids.process_button.opacity = 1
             self.ids.process_button.text = "Export"
-            # self.ids.upload_button.size_hint = (1,0.5)
-            # self.ids.async_image.size_hint = (0.4, 1)  # Restore image list
-            # self.ids.image_scroll_view.size_hint = (0.4, 0)
-            # self.ids.info_container.size_hint = (0.6, 1)  # Restore info container size
-            # Restore other elements' visibility or size here as needed
 
             self.ids.prevContainer.reset_image()
-            # self.ids.previewer.size_hint = (1, 0.7)  # Restore previewer size
-            # self.ids.previewer.keep_ratio = True  # Restore aspect ratio
-            # self.ids.previewer.allow_stretch = False  # Disable image stretching
+
 
     
     # Toggle images between processed and non-processed versions
@@ -360,16 +401,108 @@ class MyGridLayout(Widget):
         # Toggle image in container to unprocessed/processed
         self.ids.prevContainer.swap_image()
 
+# buttons in tools section
 class ImageButton(ButtonBehavior, Image):
+    def __init__(self, **kwargs):
+        super(ImageButton, self).__init__(**kwargs)
+        self.hovered = False  # Attribute to track hover state
+        Window.bind(mouse_pos=self.on_mouse_pos)  # Bind to mouse position changes
+
+    # this function called whenever the mouse position changes
+    def on_mouse_pos(self, *args):
+        pos = args[1]  # args[1] is the mouse position
+        inside = self.collide_point(*self.to_widget(*pos))  # Check if mouse is inside the widget
+        if inside:
+            if not self.hovered:  # Check if hover state needs to be updated
+                self.hovered = True
+                self.on_cursor_enter()
+        else:
+            if self.hovered:
+                self.hovered = False
+                self.on_cursor_leave()
+
+    def on_cursor_enter(self):
+        # print("cursor on")
+        Window.set_system_cursor('hand')
+
+    def on_cursor_leave(self):
+        # print("cursor off")
+        Window.set_system_cursor('arrow')
+
     def on_press(self):
+        super(ImageButton, self).on_press()
         # Temporarily change the color tint to indicate a highlight
-        # RGBA format, slightly darker or different color
         self.color = (0.1, 0.8, 0.8, 1)
         Clock.schedule_once(self.remove_highlight, 0.3)
 
     def remove_highlight(self, *args):
         # Revert to the original color tint
-        self.color = (1, 1, 1, 1)  # White means no color tint
+        self.color = (1, 1, 1, 1)
+
+    def on_parent(self, instance, value):
+        # Unbind from mouse_pos when the widget is removed from its parent
+        if value is None:
+            Window.unbind(mouse_pos=self.on_mouse_pos)
+
+class DefaultButton(ButtonBehavior, Label):
+    def __init__(self, **kwargs):
+        super(DefaultButton, self).__init__(**kwargs)
+        self.hovered = False  # Initialize the hovered attribute here
+        Window.bind(mouse_pos=self.on_mouse_pos)  # Bind to mouse position changes
+
+        # Default visual style
+        self.font_size = 80
+        self.size_hint = (1, 0.5)
+        self.background_color = (0.5, 0.5, 0.5, 0)  # Makes the default button background transparent
+        
+        # Custom drawing instructions for the button
+        with self.canvas.before:
+            Color(rgba=(0.3, 0.3, 0.3, 1))  # Button color
+            self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[30])
+            self.bind(pos=self.update_rect, size=self.update_rect)
+
+    def update_rect(self, *args):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
+
+    def on_mouse_pos(self, *args):
+        pos = args[1]  # args[1] is the mouse position
+        inside = self.collide_point(*self.to_widget(*pos))  # Check if mouse is inside the widget
+        if inside:
+            if not self.hovered:  # Check if hover state needs to be updated
+                self.hovered = True
+                self.on_cursor_enter()
+        else:
+            if self.hovered:
+                self.hovered = False
+                self.on_cursor_leave()
+
+    def on_cursor_enter(self):
+        print("cursor on")
+        Window.set_system_cursor('hand')
+
+    def on_cursor_leave(self):
+        print("cursor off")
+        Window.set_system_cursor('arrow')
+
+    def on_press(self):
+        super(DefaultButton, self).on_press()
+        # Temporarily change the color tint to indicate a highlight
+        self.color = (0.1, 0.8, 0.8, 1)
+        Clock.schedule_once(self.remove_highlight, 0.3)
+
+    def remove_highlight(self, *args):
+        self.color = (1, 1, 1, 1)
+
+    def on_parent(self, instance, value):
+        # Unbind from mouse_pos when the widget is removed from its parent
+        if value is None:
+            Window.unbind(mouse_pos=self.on_mouse_pos)
+
+    
+
+
+
 
 class CustomLayout(BoxLayout):
     pass
