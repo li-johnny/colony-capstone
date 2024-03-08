@@ -17,7 +17,7 @@
         Button:
             id: invisible_button
             opacity: 0
-            on_release: app.myLayout.previewer_update(root.source, root.texture)
+            on_release: root.previewer_update()
         BoxLayout:
             id: swap
             AsyncImage:
@@ -48,7 +48,7 @@
         AsyncImage:
             id: previewer
             size: root.parent.width, root.parent.height
-            source: root.source
+            source: None
             opacity: 0
 
 # Container for colony count and edit button
@@ -88,6 +88,7 @@
             height: self.texture_size[1]
 
         Label:
+            id: colony_count_text
             text: "XX"
             font_size: 40
             halign: 'center'

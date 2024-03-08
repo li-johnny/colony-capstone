@@ -72,6 +72,7 @@ def process_images_from_paths(paths):
             # cv.imshow("Image", image)
             # cv.waitKey(0)
             # cv.destroyAllWindows()
+            image = cv.flip(image, 0)
             images.append(image)
         elif (path.lower().endswith(('.heic'))):
             # print("reading as heic")
@@ -103,6 +104,8 @@ def process_images(images, detection_data = DetectionData(cv.HOUGH_GRADIENT_ALT,
         colonies[i] = get_colonies(images[i], detection_data)
 
     images = [cv.cvtColor(img, cv.COLOR_GRAY2BGR) for img in images]
+
+    return colonies, images
 
     # Annotate images
     for i in range(len(images)):

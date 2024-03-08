@@ -14,7 +14,7 @@ from kivy.graphics.transformation import Matrix
 from plyer import filechooser
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
-from count import process_images_from_paths
+from count import process_images_from_paths, annotate_image
 from kivy.clock import Clock
 from kivy.uix.button import Button
 from kivy.graphics import Color, RoundedRectangle
@@ -22,7 +22,7 @@ from kivy.uix.label import Label
 from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ListProperty
 
 
-
+import numpy as np
 import cv2 as cv
 
 
@@ -32,15 +32,15 @@ Window.size = (1000, 700)
 # Designate our design file
 Builder.load_file("style.kv")
 
-# Store list of image paths and textures
-images = []
-# Store list of image containers showed in the uploaded images section
+# Store list of image containers, each item is a reference to a ImageContainerWidget
 imageContainers = []
 swap = 1
 
 class ImageContainerWidget(BoxLayout):
-    source = StringProperty()
+    source = StringProperty(None)
     texture = ObjectProperty()
+    numpy_image = ObjectProperty(comparator=np.array_equal)
+    colonies = ObjectProperty(comparator=np.array_equal)
     is_selected = BooleanProperty(False)
     border_color = ListProperty([0, 0, 0, 0])
 
@@ -66,7 +66,7 @@ class ImageContainerWidget(BoxLayout):
             self.is_selected = not self.is_selected
             if self.is_selected:
                 self.deselect_others()
-            self.my_grid_layout.previewer_update(self.source, self.texture)
+            self.my_grid_layout.previewer_update(self)
 
         return super(ImageContainerWidget, self).on_touch_down(touch)
 
@@ -85,9 +85,8 @@ class ImageContainerWidget(BoxLayout):
     def remove(self):
         # print("remove is called")
         self.parent.remove_widget(self)
-        for i in range(len(images)):
-            if (images[i][0] == self.source):
-                del images[i]
+        for i in range(len(imageContainers)):
+            if (imageContainers[i].source == self.source):
                 del imageContainers[i]
                 break
 
@@ -99,22 +98,63 @@ class ImageContainerWidget(BoxLayout):
             self.ids.swap.clear_widgets()
             replace = AsyncImage(texture = self.texture, size_hint = (1, 1), fit_mode = 'cover')
             self.ids.swap.add_widget(replace)
-            # swap = 1
         else:
             self.ids.swap.clear_widgets()
             replace = AsyncImage(source = self.source, size_hint = (1, 1), fit_mode = 'cover')
             self.ids.swap.add_widget(replace)
-            # swap = 0
+    
+    def previewer_update(self):
+        app = App.get_running_app()
+        app.root.previewer_update(self)
 
 class PreviewerContainer(Scatter):
-    source = StringProperty(None)
-    texture = None
-    replace = None
+    imgRef = None
 
+    replace = None
+    add_mode = False
+    remove_mode = False
+    
     # Implements zoom functionality for previewer image
     # Code inspired from https://stackoverflow.com/questions/49807052/kivy-scroll-to-zoom
     def on_touch_down(self, touch):
+        if (self.imgRef is None or self.imgRef.source == None):
+            return
+        
+        # Finds mouse position relative to image and adds/deletes colonies
+        global swap
+        if ((self.add_mode or self.remove_mode) and touch.is_mouse_scrolling == False and self.parent.collide_point(*touch.pos) and swap == 0):
+            mouse_pos = [touch.pos[0], touch.pos[1]]
 
+            if (swap == 0):
+                img_size = self.imgRef.texture.size
+            else:
+                img_size = self.ids.previewer.texture.size
+
+            print(img_size)
+            img_ratio = img_size[1]/img_size[0]
+
+            scatter_size = self.ids.previewer.size
+            scatter_ratio = scatter_size[1]/scatter_size[0]
+            
+            if (img_ratio > scatter_ratio):
+                img_width = scatter_size[1] / img_ratio
+                img_height = scatter_size[1]
+            else:
+                img_width = scatter_size[0]
+                img_height = scatter_size[0] * img_ratio
+
+            change = img_size[0] / img_width
+
+            pos = self.to_local(mouse_pos[0] - ((scatter_size[0] - img_width)/2 * self.scale), mouse_pos[1] - ((scatter_size[1] - img_height)/2 * self.scale))
+            pos = [change * pos[0], change * pos[1]]
+
+            if self.add_mode:
+                self.add_colony(pos)
+            elif len(self.imgRef.colonies[0]) != 0:
+                self.remove_colony(pos)
+            print("Position relative to image (x,y): ", pos)
+
+        # Zoom in/out and handle moving image
         if touch.is_mouse_scrolling & self.parent.collide_point(*touch.pos):
             factor = None
             if touch.button == 'scrolldown':
@@ -127,6 +167,57 @@ class PreviewerContainer(Scatter):
                 self.apply_transform(Matrix().scale(factor, factor, factor), anchor=touch.pos)
         else:
             super(PreviewerContainer, self).on_touch_down(touch)
+
+    def add_colony(self, pos):
+        # Add colony to self.imgRef.colonies at mouse position
+        array_pos = np.uint16(np.array([[pos[0], pos[1], 5]]))
+        self.imgRef.colonies = np.array([np.append(self.imgRef.colonies[0], array_pos, 0)])
+
+        # Update colony counter
+        app = App.get_running_app()
+        app.root.infoContainer.ids.colony_count_text.text = str(len(self.imgRef.colonies[0]))
+
+        # Update texture being displayed
+        proc = annotate_image(np.copy(self.imgRef.numpy_image[0]), self.imgRef.colonies)
+        w, h, _ = proc.shape
+        texture = Texture.create(size=(h, w))
+        texture.blit_buffer(proc.flatten(), colorfmt='rgb', bufferfmt='ubyte')
+        self.texture = texture
+        self.replace.texture = texture
+        for container in imageContainers:
+            if (container.source == self.imgRef.source):
+                container.texture = texture
+                container.colonies = self.imgRef.colonies
+    
+    def remove_colony(self, pos):
+        array_pos = np.cfloat(np.array([[pos[0], pos[1]]]))
+        colin = np.delete(self.imgRef.colonies[0], 2, 1)    # delete third row of colonies with radius sizes
+        colin = colin.astype(float)
+
+        # Find nearest colony to mouse location and delete
+        set = colin - array_pos
+        distances = np.linalg.norm(set, axis=1)
+        idx_of_nearest = np.argsort(distances)[0]
+
+        # Checks if the cursor is within the radius of the nearest colony
+        if (distances[idx_of_nearest] < self.imgRef.colonies[0][idx_of_nearest][2] + 1):
+            self.imgRef.colonies = np.delete(self.imgRef.colonies, idx_of_nearest, 1)
+
+            # Update colony counter
+            app = App.get_running_app()
+            app.root.infoContainer.ids.colony_count_text.text = str(len(self.imgRef.colonies[0]))
+
+            # Updatetexture being displayed
+            proc = annotate_image(np.copy(self.imgRef.numpy_image[0]), self.imgRef.colonies)
+            w, h, _ = proc.shape
+            texture = Texture.create(size=(h, w))
+            texture.blit_buffer(proc.flatten(), colorfmt='rgb', bufferfmt='ubyte')
+            self.texture = texture
+            self.replace.texture = texture
+            for container in imageContainers:
+                if (container.source == self.imgRef.source):
+                    container.texture = texture
+                    container.colonies = self.imgRef.colonies
             
     def zoom_in(self):
         if self.scale < 10:
@@ -139,27 +230,21 @@ class PreviewerContainer(Scatter):
     # Swap image with processed image and back
     def swap_image(self):
         global swap
-        # Update texture value if it equals None
-        if (self.texture == None):
-            for i in range(len(images)):
-                if (images[i][0] == self.source):
-                    self.texture = images[i][1]
-                    break
 
         if (swap == 0):
             self.ids.relativeContainer.clear_widgets()
-            self.replace = AsyncImage(texture = self.texture, size = (self.parent.width, self.parent.height) )
+            self.replace = AsyncImage(texture = self.imgRef.texture, size = (self.parent.width, self.parent.height) )
             self.ids.relativeContainer.add_widget(self.replace)
         else:
             self.ids.relativeContainer.clear_widgets()
-            self.replace = AsyncImage(source = self.source, size = (self.parent.width, self.parent.height))
+            self.replace = AsyncImage(source = self.imgRef.source, size = (self.parent.width, self.parent.height))
             self.ids.relativeContainer.add_widget(self.replace)
 
     # Set image back to it's original size and position
     def reset_image(self):
         self.scale = 1
         self.pos = self.parent.pos
-    
+
 
 class InfoContainer(BoxLayout):
     tools_visible = BooleanProperty(False)
@@ -200,12 +285,18 @@ class InfoContainer(BoxLayout):
     
     def add_colony(self):
         print("Add Colony was pressed")
+        app = App.get_running_app()
+        app.root.ids.prevContainer.add_mode = not app.root.ids.prevContainer.add_mode
+        app.root.ids.prevContainer.remove_mode = False
     
     def remove_colony(self):
-        print("Remove Colony was pressed")
+        app = App.get_running_app()
+        app.root.ids.prevContainer.remove_mode = not app.root.ids.prevContainer.remove_mode
+        app.root.ids.prevContainer.add_mode = False
     
     def zoom_in(self):
         print("Zoom In was pressed")
+
 
     def zoom_out(self):
         print("Zoom Out was pressed")
@@ -274,10 +365,9 @@ class MyGridLayout(Widget):
     # Add provided image to our image_box section add put in the image previewer
     def load_image(self, file_path):
         if file_path.lower().endswith(('.png', '.jpg', '.jpeg')):
-            imageContainer = ImageContainerWidget(source = file_path, texture = None)
+            imageContainer = ImageContainerWidget(source = file_path, texture = None, numpy_image = None, colonies = None)
             imageContainers.append(imageContainer)
             self.ids.image_box.add_widget(imageContainer)
-            images.append([file_path, None])
 
             # Set a reference to this MyGridLayout instance on the new ImageContainerWidget
             imageContainer.my_grid_layout = self
@@ -288,29 +378,33 @@ class MyGridLayout(Widget):
             # Select the last added image
             imageContainers[-1].is_selected = True 
 
-            self.ids.prevContainer.source = file_path
+            self.ids.prevContainer.imgRef = imageContainers[-1]
+            self.ids.prevContainer.ids.previewer.source = file_path
+            if (self.ids.prevContainer.replace != None):
+                self.ids.prevContainer.replace.source = file_path
+
             self.ids.prevContainer.ids.previewer.opacity = 1
-            print(images)
+            print(imageContainers)
         else:
             print("Could not open")
     
     # Update Image in the image previewer
-    def previewer_update(self, source, texture):
-        print("previewer_update")
+    def previewer_update(self, imgReference):
         global swap
+
         container = self.ids.prevContainer
         container.reset_image()
+        container.imgRef = imgReference
+
+        if (imgReference.colonies is not None):
+            self.infoContainer.ids.colony_count_text.text = str(len(imgReference.colonies[0]))
         if (container.replace == None):
-            container.source = source
+            container.ids.previewer.source = imgReference.source
         else:
             if(swap == 1):
-                container.source = source
-                container.texture = texture
-                container.replace.source = source
+                container.replace.source = imgReference.source
             else:
-                container.source = source
-                container.texture = texture
-                container.replace.texture = texture
+                container.replace.texture = imgReference.texture
 
     def activate_cancel(self):
         self.ids.process_button.text = "Process"
@@ -319,8 +413,6 @@ class MyGridLayout(Widget):
         self.infoContainer.remove()
 
     def convert_to_texture(self, image):
-        image = cv.flip(image, 0)
-
         w, h, _ = image.shape
         texture = Texture.create(size=(h, w))
         texture.blit_buffer(image.flatten(), colorfmt='rgb', bufferfmt='ubyte')
@@ -329,13 +421,25 @@ class MyGridLayout(Widget):
     
     def start_processing(self):
         print("Processing started...")
-        for i in images:
-            if(i[1] == None):
-                colonyCount, numpyImage = process_images_from_paths([i[0]])
-                i[1] = self.convert_to_texture(numpyImage[0])
 
-        self.infoContainer = InfoContainer()
-        self.ids.right_side_layout.add_widget(self.infoContainer)
+        for container in imageContainers:
+            if(container.texture == None):
+                colonies, numpyImage = process_images_from_paths([container.source])
+                if colonies[0] is not None:
+                    container.texture = self.convert_to_texture(annotate_image(np.copy(numpyImage[0]), colonies[0]))
+                else:
+                    container.texture = self.convert_to_texture(numpyImage[0])
+                container.numpy_image = numpyImage
+                if colonies[0] is not None:
+                    container.colonies = colonies[0]
+                else: 
+                    # Create empty colonies array when 0 colonies detected
+                    container.colonies = np.uint16(np.empty((1,0,3)))
+
+        if (len(imageContainers) != 0):
+            self.infoContainer = InfoContainer()
+            self.ids.right_side_layout.add_widget(self.infoContainer)
+            self.infoContainer.ids.colony_count_text.text = str(len(self.ids.prevContainer.imgRef.colonies[0]))
 
     def start_exporting(self):
         print("Exportinging started...")
@@ -394,9 +498,8 @@ class MyGridLayout(Widget):
         else:
             swap = 0
 
-        for i in range(len(imageContainers)):
-            imageContainers[i].texture = images[i][1]
-            imageContainers[i].swap_image()
+        for container in imageContainers:
+            container.swap_image()
         
         # Toggle image in container to unprocessed/processed
         self.ids.prevContainer.swap_image()
