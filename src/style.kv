@@ -49,6 +49,7 @@
             id: previewer
             size: root.parent.width, root.parent.height
             source: None
+            fit_mode: 'contain'
             opacity: 0
 
 # Container for colony count and edit button
@@ -160,6 +161,7 @@
                 orientation: 'vertical'
 
                 ImageButton:
+                    id: add_icon
                     source: 'img/add_icon.png'
                     on_press: root.add_colony()
                     size_hint: (1, 0.7)
@@ -197,6 +199,7 @@
                 orientation: 'vertical'
 
                 ImageButton:
+                    id: remove_icon
                     source: 'img/remove_icon.png'
                     on_press: root.remove_colony()
                     size_hint: (1, 0.7)

@@ -63,7 +63,7 @@ class ImageContainerWidget(BoxLayout):
         
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.is_selected = not self.is_selected
+            self.is_selected = True
             if self.is_selected:
                 self.deselect_others()
             self.my_grid_layout.previewer_update(self)
@@ -89,6 +89,8 @@ class ImageContainerWidget(BoxLayout):
             if (imageContainers[i].source == self.source):
                 del imageContainers[i]
                 break
+        app = App.get_running_app()
+        app.root.handle_delete()
 
     
     # Swap image with processed image and back
@@ -233,11 +235,11 @@ class PreviewerContainer(Scatter):
 
         if (swap == 0):
             self.ids.relativeContainer.clear_widgets()
-            self.replace = AsyncImage(texture = self.imgRef.texture, size = (self.parent.width, self.parent.height) )
+            self.replace = AsyncImage(texture = self.imgRef.texture, size = (self.parent.width, self.parent.height), fit_mode = 'contain')
             self.ids.relativeContainer.add_widget(self.replace)
         else:
             self.ids.relativeContainer.clear_widgets()
-            self.replace = AsyncImage(source = self.imgRef.source, size = (self.parent.width, self.parent.height))
+            self.replace = AsyncImage(source = self.imgRef.source, size = (self.parent.width, self.parent.height), fit_mode = 'contain')
             self.ids.relativeContainer.add_widget(self.replace)
 
     # Set image back to it's original size and position
@@ -268,6 +270,12 @@ class InfoContainer(BoxLayout):
             # Show the tool section
             self.ids.tools_layout.size_hint = (1, 0.2)
             self.ids.tools_layout.opacity = 1
+            
+            app = App.get_running_app()
+            if app.root.ids.prevContainer.add_mode:
+                self.ids.add_icon.color = (0.1, 0.8, 0.8, 1)
+            if app.root.ids.prevContainer.remove_mode:
+                self.ids.remove_icon.color = (0.1, 0.8, 0.8, 1)
         else:
             # Show the edit button
             self.ids.edit_button.size_hint = (1, 0.2)
@@ -288,11 +296,21 @@ class InfoContainer(BoxLayout):
         app = App.get_running_app()
         app.root.ids.prevContainer.add_mode = not app.root.ids.prevContainer.add_mode
         app.root.ids.prevContainer.remove_mode = False
+        if app.root.ids.prevContainer.add_mode:
+            self.ids.add_icon.color = (0.1, 0.8, 0.8, 1)
+        else:
+            self.ids.add_icon.color = (1, 1, 1, 1)
+        self.ids.remove_icon.color = (1, 1, 1, 1)
     
     def remove_colony(self):
         app = App.get_running_app()
         app.root.ids.prevContainer.remove_mode = not app.root.ids.prevContainer.remove_mode
         app.root.ids.prevContainer.add_mode = False
+        if app.root.ids.prevContainer.remove_mode:
+            self.ids.remove_icon.color = (0.1, 0.8, 0.8, 1)
+        else:
+            self.ids.remove_icon.color = (1, 1, 1, 1)
+        self.ids.add_icon.color = (1, 1, 1, 1)
     
     def zoom_in(self):
         print("Zoom In was pressed")
@@ -382,6 +400,7 @@ class MyGridLayout(Widget):
             self.ids.prevContainer.ids.previewer.source = file_path
             if (self.ids.prevContainer.replace != None):
                 self.ids.prevContainer.replace.source = file_path
+                self.ids.prevContainer.replace.opacity = 1
 
             self.ids.prevContainer.ids.previewer.opacity = 1
             print(imageContainers)
@@ -405,12 +424,28 @@ class MyGridLayout(Widget):
                 container.replace.source = imgReference.source
             else:
                 container.replace.texture = imgReference.texture
+            
+    def handle_delete(self):
+        print(len(imageContainers))
+        if len(imageContainers) == 0:
+            if self.ids.prevContainer.replace == None:
+                self.ids.prevContainer.ids.previewer.opacity = 0
+            else:
+                self.ids.prevContainer.replace.opacity = 0
+            if not self.processing:
+                self.activate_cancel()
+        else:
+            imageContainers[-1].is_selected = True
+            self.previewer_update(imageContainers[-1])
 
     def activate_cancel(self):
         self.ids.process_button.text = "Process"
         self.ids.upload_button.text = "Upload"
         self.processing = True
+        if (swap == 0):
+            self.toggle_images()
         self.infoContainer.remove()
+        self.ids.prevContainer.reset_image()
 
     def convert_to_texture(self, image):
         w, h, _ = image.shape
@@ -440,6 +475,7 @@ class MyGridLayout(Widget):
             self.infoContainer = InfoContainer()
             self.ids.right_side_layout.add_widget(self.infoContainer)
             self.infoContainer.ids.colony_count_text.text = str(len(self.ids.prevContainer.imgRef.colonies[0]))
+            self.toggle_images()
 
     def start_exporting(self):
         print("Exportinging started...")
@@ -453,9 +489,10 @@ class MyGridLayout(Widget):
     def on_process_button_press(self):
         try:
             if self.processing:
-                self.start_processing()
-                self.replace_with_export_and_cancel()
-                self.ids.prevContainer.reset_image()
+                if len(imageContainers) != 0:
+                    self.start_processing()
+                    self.replace_with_export_and_cancel()
+                    self.ids.prevContainer.reset_image()
             else:
                 self.start_exporting()
         except Exception as e:
@@ -535,8 +572,9 @@ class ImageButton(ButtonBehavior, Image):
     def on_press(self):
         super(ImageButton, self).on_press()
         # Temporarily change the color tint to indicate a highlight
-        self.color = (0.1, 0.8, 0.8, 1)
-        Clock.schedule_once(self.remove_highlight, 0.3)
+        if (self.source != "img/add_icon.png" and self.source != "img/remove_icon.png"):
+            self.color = (0.1, 0.8, 0.8, 1)
+            Clock.schedule_once(self.remove_highlight, 0.3)
 
     def remove_highlight(self, *args):
         # Revert to the original color tint
